@@ -431,27 +431,45 @@ function cancelReply() {
 // ===== Context Menu (Right Click) =====
 function setupContextMenu() {
   const menu = $('#contextMenu');
+  const menuBlank = $('#contextMenuBlank');
   let targetMsg = null;
 
+  function hideMenus() {
+    menu.style.display = 'none';
+    menuBlank.style.display = 'none';
+  }
+
   document.addEventListener('contextmenu', (e) => {
+    const chatArea = e.target.closest('#chatMessages');
     const row = e.target.closest('.msg-row');
-    if (!row) { menu.style.display = 'none'; return; }
 
-    e.preventDefault();
-    const msgId = parseInt(row.dataset.msgId);
-    targetMsg = messages.find(m => m.id === msgId);
-    if (!targetMsg) return;
+    hideMenus();
 
-    menu.style.display = 'block';
-    menu.style.left = Math.min(e.clientX, window.innerWidth - 160) + 'px';
-    menu.style.top = Math.min(e.clientY, window.innerHeight - 80) + 'px';
+    if (row) {
+      // Right-click on a message
+      e.preventDefault();
+      const msgId = parseInt(row.dataset.msgId);
+      targetMsg = messages.find(m => m.id === msgId);
+      if (!targetMsg) return;
+
+      menu.style.display = 'block';
+      menu.style.left = Math.min(e.clientX, window.innerWidth - 160) + 'px';
+      menu.style.top = Math.min(e.clientY, window.innerHeight - 120) + 'px';
+    } else if (chatArea) {
+      // Right-click on blank area in chat
+      e.preventDefault();
+      if (messages.length === 0) return;
+      menuBlank.style.display = 'block';
+      menuBlank.style.left = Math.min(e.clientX, window.innerWidth - 200) + 'px';
+      menuBlank.style.top = Math.min(e.clientY, window.innerHeight - 60) + 'px';
+    }
   });
 
-  document.addEventListener('click', () => { menu.style.display = 'none'; });
+  document.addEventListener('click', hideMenus);
 
   $('#ctxReply').addEventListener('click', () => {
     if (targetMsg) setReply(targetMsg);
-    menu.style.display = 'none';
+    hideMenus();
   });
 
   $('#ctxCopy').addEventListener('click', () => {
@@ -459,7 +477,34 @@ function setupContextMenu() {
       const text = targetMsg.msg_type === 'image' ? targetMsg.file_url : targetMsg.content;
       navigator.clipboard.writeText(text).then(() => toast('已复制', 'success'));
     }
-    menu.style.display = 'none';
+    hideMenus();
+  });
+
+  // Delete single message
+  $('#ctxDelete').addEventListener('click', async () => {
+    if (!targetMsg) return;
+    hideMenus();
+    const { error } = await sb.from('messages').delete().eq('id', targetMsg.id);
+    if (error) { toast('删除失败', 'error'); return; }
+    messages = messages.filter(m => m.id !== targetMsg.id);
+    renderMessages();
+    toast('已删除', 'success');
+  });
+
+  // Clear all history
+  $('#ctxClearAll').addEventListener('click', async () => {
+    hideMenus();
+    if (!confirm('确定清空全部历史消息？此操作不可撤销。')) return;
+    const peer = currentPeer;
+    if (!peer) return;
+    // Delete all messages between current user and peer
+    const { error } = await sb.from('messages')
+      .delete()
+      .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${peer}),and(sender_id.eq.${peer},receiver_id.eq.${currentUser.id})`);
+    if (error) { toast('清空失败', 'error'); console.error(error); return; }
+    messages = [];
+    renderMessages();
+    toast('历史消息已清空', 'success');
   });
 }
 
