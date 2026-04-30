@@ -484,8 +484,8 @@ function setupContextMenu() {
   $('#ctxDelete').addEventListener('click', async () => {
     if (!targetMsg) return;
     hideMenus();
-    const { error } = await sb.from('messages').delete().eq('id', targetMsg.id);
-    if (error) { toast('删除失败', 'error'); return; }
+    const { error } = await sb.from('chat_messages').delete().eq('id', targetMsg.id);
+    if (error) { toast('删除失败', 'error'); console.error(error); return; }
     messages = messages.filter(m => m.id !== targetMsg.id);
     renderMessages();
     toast('已删除', 'success');
@@ -498,7 +498,7 @@ function setupContextMenu() {
     const peer = currentPeer;
     if (!peer) return;
     // Delete all messages between current user and peer
-    const { error } = await sb.from('messages')
+    const { error } = await sb.from('chat_messages')
       .delete()
       .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${peer}),and(sender_id.eq.${peer},receiver_id.eq.${currentUser.id})`);
     if (error) { toast('清空失败', 'error'); console.error(error); return; }
