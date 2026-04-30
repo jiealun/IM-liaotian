@@ -594,7 +594,7 @@ function subscribeMessages() {
         peer.lastMsg = msg.msg_type === 'image' ? '[图片]' : msg.content;
         peer.lastTime = msg.created_at;
       }
-      sortUsers(); renderUsers(); updateFaviconBadge();
+      sortUsers(); renderUsers(); updateFaviconBadge(); notifyNewMessage();
     }).subscribe();
 }
 
@@ -741,8 +741,16 @@ function toast(msg, type='info') {
 }
 
 // ===== Favicon Badge =====
+let _hasNewWhileHidden = false;
+
 function updateFaviconBadge() {
   const total = Object.values(unreadCounts).reduce((s, n) => s + n, 0);
+  const showDot = _hasNewWhileHidden && document.hidden;
+  _drawFavicon(total, showDot);
+  document.title = total > 0 ? `(${total}) IM-liaotian` : 'IM-liaotian';
+}
+
+function _drawFavicon(total, forceRedDot) {
   const canvas = document.createElement('canvas');
   canvas.width = 64; canvas.height = 64;
   const ctx = canvas.getContext('2d');
@@ -752,7 +760,6 @@ function updateFaviconBadge() {
   ctx.beginPath();
   ctx.roundRect(4, 4, 56, 44, 12);
   ctx.fill();
-  ctx.fillStyle = '#6366f1';
   ctx.beginPath();
   ctx.moveTo(16, 48); ctx.lineTo(24, 56); ctx.lineTo(32, 48);
   ctx.fill();
@@ -763,30 +770,54 @@ function updateFaviconBadge() {
     ctx.beginPath(); ctx.arc(x, 26, 4, 0, Math.PI * 2); ctx.fill();
   });
 
-  // Badge
-  if (total > 0) {
-    const text = total > 99 ? '99+' : String(total);
-    const badgeW = Math.max(24, ctx.measureText(text).width + 12);
-    ctx.fillStyle = '#ef4444';
-    ctx.beginPath();
-    ctx.roundRect(64 - badgeW - 2, 0, badgeW, 24, 12);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, 64 - badgeW / 2 - 2, 12);
+  // Badge number or red dot
+  if (total > 0 || forceRedDot) {
+    if (total > 0) {
+      const text = total > 99 ? '99+' : String(total);
+      ctx.font = 'bold 16px sans-serif';
+      const badgeW = Math.max(24, ctx.measureText(text).width + 12);
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.roundRect(64 - badgeW - 2, 0, badgeW, 24, 12);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 64 - badgeW / 2 - 2, 12);
+    } else {
+      // Just a red dot
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(54, 10, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
-  // Update title
-  document.title = total > 0 ? `(${total}) IM-liaotian` : 'IM-liaotian';
-
-  // Update favicon
   let link = document.querySelector('link[rel="icon"]');
-  if (!link) {
-    link = document.createElement('link');
-    link.rel = 'icon';
-    document.head.appendChild(link);
-  }
+  if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
   link.href = canvas.toDataURL('image/png');
 }
+
+// Track new messages while tab is hidden → show red dot
+function notifyNewMessage() {
+  if (document.hidden) {
+    _hasNewWhileHidden = true;
+    updateFaviconBadge();
+    // Flash title
+    if (!window._titleFlash) {
+      const orig = document.title;
+      window._titleFlash = setInterval(() => {
+        document.title = document.title === '💬 新消息！' ? orig : '💬 新消息！';
+      }, 800);
+    }
+  }
+}
+
+// When user switches back to this tab → clear red dot and stop flashing
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    _hasNewWhileHidden = false;
+    if (window._titleFlash) { clearInterval(window._titleFlash); window._titleFlash = null; }
+    updateFaviconBadge();
+  }
+});
