@@ -134,6 +134,8 @@ async function enterChat(id, nickname) {
       await sb.from('chat_users').update({
         is_online: true, last_seen: new Date().toISOString()
       }).eq('id', currentUser.id);
+      // Also refresh user list periodically as backup
+      await loadUsers();
     }
   }, 30000);
 }
@@ -613,6 +615,10 @@ function subscribeUsers() {
           const was = ex.is_online;
           Object.assign(ex, { is_online: u.is_online, last_seen: u.last_seen, nickname: u.nickname });
           if (!was && u.is_online) toast(`${u.nickname} 上线了`, 'info');
+        } else if (u.is_online) {
+          // User not in list yet (e.g. logged in after us) — add them
+          allUsers.push({ ...u, lastMsg: '', lastTime: '' });
+          toast(`${u.nickname} 上线了`, 'info');
         }
       }
       sortUsers(); renderUsers();
