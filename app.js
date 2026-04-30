@@ -165,6 +165,7 @@ async function loadUsers() {
     u.lastTime = last?.[0]?.created_at || '';
   }
   renderUsers();
+  updateFaviconBadge();
 }
 
 function renderUsers() {
@@ -237,6 +238,7 @@ async function openChat(peerId) {
   await markRead(peerId);
   unreadCounts[peerId] = 0;
   renderUsers();
+  updateFaviconBadge();
   $('#msgInput').focus();
 }
 
@@ -592,7 +594,7 @@ function subscribeMessages() {
         peer.lastMsg = msg.msg_type === 'image' ? '[图片]' : msg.content;
         peer.lastTime = msg.created_at;
       }
-      sortUsers(); renderUsers();
+      sortUsers(); renderUsers(); updateFaviconBadge();
     }).subscribe();
 }
 
@@ -736,4 +738,55 @@ function toast(msg, type='info') {
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 3000);
+}
+
+// ===== Favicon Badge =====
+function updateFaviconBadge() {
+  const total = Object.values(unreadCounts).reduce((s, n) => s + n, 0);
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+
+  // Base icon: chat bubble
+  ctx.fillStyle = '#6366f1';
+  ctx.beginPath();
+  ctx.roundRect(4, 4, 56, 44, 12);
+  ctx.fill();
+  ctx.fillStyle = '#6366f1';
+  ctx.beginPath();
+  ctx.moveTo(16, 48); ctx.lineTo(24, 56); ctx.lineTo(32, 48);
+  ctx.fill();
+
+  // Three dots
+  ctx.fillStyle = '#fff';
+  [20, 32, 44].forEach(x => {
+    ctx.beginPath(); ctx.arc(x, 26, 4, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Badge
+  if (total > 0) {
+    const text = total > 99 ? '99+' : String(total);
+    const badgeW = Math.max(24, ctx.measureText(text).width + 12);
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.roundRect(64 - badgeW - 2, 0, badgeW, 24, 12);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 64 - badgeW / 2 - 2, 12);
+  }
+
+  // Update title
+  document.title = total > 0 ? `(${total}) IM-liaotian` : 'IM-liaotian';
+
+  // Update favicon
+  let link = document.querySelector('link[rel="icon"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.href = canvas.toDataURL('image/png');
 }
