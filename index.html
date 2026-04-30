@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebChat - 网页聊天</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ========== Enter Screen ========== -->
+<div id="enterScreen" class="enter-screen">
+  <div class="enter-card">
+    <div class="enter-logo">💬</div>
+    <h1>WebChat</h1>
+    <p class="enter-subtitle">选择已有用户，或创建新用户</p>
+
+    <!-- Existing users list -->
+    <div class="user-list-section">
+      <div class="user-list-title">已有用户</div>
+      <div class="user-list" id="userList">
+        <div class="user-list-loading">加载中...</div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="enter-divider"><span>或 创建新用户</span></div>
+
+    <!-- New user input -->
+    <form id="enterForm" class="enter-form">
+      <input type="text" id="nicknameInput" placeholder="输入新昵称" required maxlength="20" autocomplete="off">
+      <button type="submit" class="btn-primary">创建并进入</button>
+    </form>
+    <div id="enterError" class="enter-error"></div>
+  </div>
+</div>
+
+<!-- ========== Main Chat Screen ========== -->
+<div id="chatScreen" class="chat-screen" style="display:none">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="my-info">
+        <div class="avatar-sm" id="myAvatar">我</div>
+        <span id="myNickname">--</span>
+      </div>
+      <button class="icon-btn" id="btnLogout" title="退出">⏻</button>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" id="searchInput" placeholder="搜索用户">
+    </div>
+    <div class="contact-list" id="contactList">
+      <div class="section-title">在线用户</div>
+      <div id="onlineUsers"></div>
+      <div class="section-title" id="offlineTitle" style="display:none">离线用户</div>
+      <div id="offlineUsers"></div>
+    </div>
+  </aside>
+
+  <main class="chat-main">
+    <div id="chatEmpty" class="chat-empty">
+      <div class="empty-icon">💬</div>
+      <p>选择一个用户开始聊天</p>
+    </div>
+
+    <div id="chatWindow" class="chat-window" style="display:none">
+      <div class="chat-header">
+        <div class="chat-peer-info">
+          <div class="avatar-sm" id="peerAvatar">?</div>
+          <div>
+            <div id="peerNickname" class="peer-name">--</div>
+            <div id="peerStatus" class="peer-status">离线</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages"></div>
+
+      <!-- Reply preview bar -->
+      <div id="replyBar" class="reply-bar" style="display:none">
+        <div class="reply-bar-content">
+          <span class="reply-bar-label">回复</span>
+          <span id="replyPreview" class="reply-bar-text"></span>
+        </div>
+        <button class="reply-bar-close" id="btnCancelReply">✕</button>
+      </div>
+
+      <div class="chat-input-area">
+        <div class="input-toolbar">
+          <button class="toolbar-btn" id="btnEmoji" title="表情">😊</button>
+          <button class="toolbar-btn" id="btnFile" title="发送文件">📎</button>
+          <input type="file" id="fileInput" style="display:none" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.txt">
+        </div>
+        <div class="input-row">
+          <textarea id="msgInput" placeholder="输入消息... (Enter发送, Shift+Enter换行, Cmd+V粘贴图片)" rows="1"></textarea>
+          <button class="btn-send" id="btnSend">发送</button>
+        </div>
+      </div>
+
+      <!-- Emoji Picker -->
+      <div id="emojiPicker" class="emoji-picker" style="display:none">
+        <div class="emoji-tabs" id="emojiTabs"></div>
+        <div class="emoji-grid" id="emojiGrid"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Right-click context menu -->
+<div id="contextMenu" class="context-menu" style="display:none">
+  <div class="context-item" id="ctxReply">💬 回复</div>
+  <div class="context-item" id="ctxCopy">📋 复制</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>
