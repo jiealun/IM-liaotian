@@ -247,7 +247,8 @@ async function loadMessages(peerId) {
   const { data } = await sb.from('chat_messages')
     .select('*')
     .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${peerId}),and(sender_id.eq.${peerId},receiver_id.eq.${currentUser.id})`)
-    .order('created_at', { ascending: true }).limit(200);
+    .order('created_at', { ascending: true })
+    .limit(1000);
   messages = data || [];
   renderMessages();
 }
@@ -459,6 +460,10 @@ function setupContextMenu() {
       menu.style.display = 'block';
       menu.style.left = Math.min(e.clientX, window.innerWidth - 160) + 'px';
       menu.style.top = Math.min(e.clientY, window.innerHeight - 120) + 'px';
+
+      // Only show withdraw for own messages
+      const withdrawEl = $('#ctxWithdraw');
+      withdrawEl.style.display = (targetMsg.sender_id === currentUser.id) ? 'block' : 'none';
     } else if (chatArea) {
       // Right-click on blank area in chat
       e.preventDefault();
@@ -493,6 +498,26 @@ function setupContextMenu() {
     messages = messages.filter(m => m.id !== targetMsg.id);
     renderMessages();
     toast('已删除', 'success');
+  });
+
+  // Withdraw (recall) my message
+  $('#ctxWithdraw').addEventListener('click', async () => {
+    if (!targetMsg || targetMsg.sender_id !== currentUser.id) {
+      hideMenus();
+      toast('只能撤回自己发送的消息', 'info');
+      return;
+    }
+    hideMenus();
+    const { error } = await sb.from('chat_messages')
+      .update({ content: '[消息已撤回]', msg_type: 'text', file_url: '', file_name: '' })
+      .eq('id', targetMsg.id)
+      .eq('sender_id', currentUser.id);
+    if (error) { toast('撤回失败: ' + error.message, 'error'); return; }
+    targetMsg.content = '[消息已撤回]';
+    targetMsg.msg_type = 'text';
+    targetMsg.file_url = '';
+    renderMessages();
+    toast('消息已撤回', 'success');
   });
 
   // Clear all history
