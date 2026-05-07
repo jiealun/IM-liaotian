@@ -342,3 +342,51 @@ input, textarea, button { font-family: inherit; font-size: inherit; }
   display: flex; align-items: center; justify-content: center; cursor: zoom-out;
 }
 .img-overlay img { max-width: 90vw; max-height: 90vh; border-radius: 14px; }
+
+/* ===== Mobile Responsive ===== */
+.btn-back { display: none; }
+
+@media (max-width: 768px) {
+  .chat-screen { flex-direction: column; position: relative; }
+
+  .sidebar {
+    width: 100%; min-width: 100%; height: 100%;
+    position: absolute; top: 0; left: 0; z-index: 10;
+    transition: transform 0.25s ease;
+  }
+  .sidebar.hidden { transform: translateX(-100%); }
+
+  .chat-main {
+    width: 100%; padding: 0; position: absolute; top: 0; left: 0;
+    height: 100%; z-index: 5;
+  }
+
+  .chat-empty {
+    width: 100%; border-radius: 0; box-shadow: none;
+  }
+
+  .chat-window {
+    width: 100%; height: 100%; border-radius: 0; box-shadow: none;
+  }
+
+  .chat-header { border-radius: 0; }
+  .chat-input-area { border-radius: 0; padding: 12px 16px 16px; }
+
+  .input-row textarea { min-height: 44px; font-size: 16px; }
+  .btn-send { padding: 12px 18px; font-size: 14px; }
+
+  /* Back button visible on mobile */
+  .btn-back {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 10px; border: none;
+    background: transparent; font-size: 20px; color: var(--text-dim);
+    cursor: pointer; margin-right: 4px; flex-shrink: 0;
+  }
+  .btn-back:hover { background: var(--bg-hover); }
+
+  /* Emoji picker full width on mobile */
+  .emoji-picker {
+    left: 10px; right: 10px; width: auto; bottom: 90px;
+  }
+  .emoji-grid { grid-template-columns: repeat(7, 1fr); }
+}

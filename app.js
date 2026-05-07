@@ -258,6 +258,11 @@ async function openChat(peerId) {
   $('#chatEmpty').style.display = 'none';
   $('#chatWindow').style.display = 'flex';
 
+  // Mobile: hide sidebar when chat opens
+  if (window.innerWidth <= 768) {
+    document.querySelector('.sidebar').classList.add('hidden');
+  }
+
   cancelReply();
   await loadMessages(peerId);
   await markRead(peerId);
@@ -681,6 +686,11 @@ function setupChatUI() {
   input.addEventListener('input', autoResize);
   $('#searchInput').addEventListener('input', renderUsers);
   $('#btnCancelReply').addEventListener('click', cancelReply);
+
+  // Mobile: back button to show sidebar
+  $('#btnBack').addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.remove('hidden');
+  });
 
   // Paste image (Cmd+V)
   input.addEventListener('paste', (e) => {
