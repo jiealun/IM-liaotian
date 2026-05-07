@@ -19,115 +19,39 @@ let replyToMsg = null;  // message being replied to
 const $ = (s) => document.querySelector(s);
 const STORAGE_KEY = 'webchat_user';
 
-// ===== Emoji Data (WeChat style image emojis) =====
-const WX_EMOJI_BASE = 'https://res.wx.qq.com/t/wx_fed/we-emoji/res/v1.3.1/assets/Expression/Expression_';
-const WX_EMOJI_LIST = [
-  { id: '1@2x.png', name: '微笑' },
-  { id: '2@2x.png', name: '撇嘴' },
-  { id: '3@2x.png', name: '色' },
-  { id: '4@2x.png', name: '发呆' },
-  { id: '5@2x.png', name: '得意' },
-  { id: '6@2x.png', name: '流泪' },
-  { id: '7@2x.png', name: '害羞' },
-  { id: '8@2x.png', name: '闭嘴' },
-  { id: '9@2x.png', name: '睡' },
-  { id: '10@2x.png', name: '大哭' },
-  { id: '11@2x.png', name: '尴尬' },
-  { id: '12@2x.png', name: '发怒' },
-  { id: '13@2x.png', name: '调皮' },
-  { id: '14@2x.png', name: '呲牙' },
-  { id: '15@2x.png', name: '惊讶' },
-  { id: '16@2x.png', name: '难过' },
-  { id: '17@2x.png', name: '酷' },
-  { id: '18@2x.png', name: '冷汗' },
-  { id: '19@2x.png', name: '抓狂' },
-  { id: '20@2x.png', name: '吐' },
-  { id: '21@2x.png', name: '偷笑' },
-  { id: '22@2x.png', name: '可爱' },
-  { id: '23@2x.png', name: '白眼' },
-  { id: '24@2x.png', name: '傲慢' },
-  { id: '25@2x.png', name: '饥饿' },
-  { id: '26@2x.png', name: '困' },
-  { id: '27@2x.png', name: '惊恐' },
-  { id: '28@2x.png', name: '流汗' },
-  { id: '29@2x.png', name: '憨笑' },
-  { id: '30@2x.png', name: '大兵' },
-  { id: '31@2x.png', name: '奋斗' },
-  { id: '32@2x.png', name: '咒骂' },
-  { id: '33@2x.png', name: '疑问' },
-  { id: '34@2x.png', name: '嘘' },
-  { id: '35@2x.png', name: '晕' },
-  { id: '36@2x.png', name: '折磨' },
-  { id: '37@2x.png', name: '衰' },
-  { id: '38@2x.png', name: '骷髅' },
-  { id: '39@2x.png', name: '敲打' },
-  { id: '40@2x.png', name: '再见' },
-  { id: '41@2x.png', name: '擦汗' },
-  { id: '42@2x.png', name: '抠鼻' },
-  { id: '43@2x.png', name: '鼓掌' },
-  { id: '44@2x.png', name: '糗大了' },
-  { id: '45@2x.png', name: '坏笑' },
-  { id: '46@2x.png', name: '左哼哼' },
-  { id: '47@2x.png', name: '右哼哼' },
-  { id: '48@2x.png', name: '哈欠' },
-  { id: '49@2x.png', name: '鄙视' },
-  { id: '50@2x.png', name: '委屈' },
-  { id: '51@2x.png', name: '快哭了' },
-  { id: '52@2x.png', name: '阴险' },
-  { id: '53@2x.png', name: '亲亲' },
-  { id: '54@2x.png', name: '吓' },
-  { id: '55@2x.png', name: '可怜' },
-  { id: '56@2x.png', name: '菜刀' },
-  { id: '57@2x.png', name: '西瓜' },
-  { id: '58@2x.png', name: '啤酒' },
-  { id: '59@2x.png', name: '篮球' },
-  { id: '60@2x.png', name: '乒乓' },
-  { id: '61@2x.png', name: '咖啡' },
-  { id: '62@2x.png', name: '饭' },
-  { id: '63@2x.png', name: '猪头' },
-  { id: '64@2x.png', name: '玫瑰' },
-  { id: '65@2x.png', name: '凋谢' },
-  { id: '66@2x.png', name: '示爱' },
-  { id: '67@2x.png', name: '爱心' },
-  { id: '68@2x.png', name: '心碎' },
-  { id: '69@2x.png', name: '蛋糕' },
-  { id: '70@2x.png', name: '闪电' },
-  { id: '71@2x.png', name: '炸弹' },
-  { id: '72@2x.png', name: '刀' },
-  { id: '73@2x.png', name: '足球' },
-  { id: '74@2x.png', name: '瓢虫' },
-  { id: '75@2x.png', name: '便便' },
-  { id: '76@2x.png', name: '月亮' },
-  { id: '77@2x.png', name: '太阳' },
-  { id: '78@2x.png', name: '礼物' },
-  { id: '79@2x.png', name: '拥抱' },
-  { id: '80@2x.png', name: '强' },
-  { id: '81@2x.png', name: '弱' },
-  { id: '82@2x.png', name: '握手' },
-  { id: '83@2x.png', name: '胜利' },
-  { id: '84@2x.png', name: '抱拳' },
-  { id: '85@2x.png', name: '勾引' },
-  { id: '86@2x.png', name: '拳头' },
-  { id: '87@2x.png', name: '差劲' },
-  { id: '88@2x.png', name: '爱你' },
-  { id: '89@2x.png', name: 'NO' },
-  { id: '90@2x.png', name: 'OK' },
-  { id: '91@2x.png', name: '爱情' },
-  { id: '92@2x.png', name: '飞吻' },
-  { id: '93@2x.png', name: '跳跳' },
-  { id: '94@2x.png', name: '发抖' },
-  { id: '95@2x.png', name: '怄火' },
-  { id: '96@2x.png', name: '转圈' },
-  { id: '97@2x.png', name: '磕头' },
-  { id: '98@2x.png', name: '回头' },
-  { id: '99@2x.png', name: '跳绳' },
-  { id: '100@2x.png', name: '挥手' },
-  { id: '101@2x.png', name: '激动' },
-  { id: '102@2x.png', name: '街舞' },
-  { id: '103@2x.png', name: '献吻' },
-  { id: '104@2x.png', name: '左太极' },
-  { id: '105@2x.png', name: '右太极' },
+// ===== Emoji Data (image-based using Twemoji CDN) =====
+// Using Twemoji - high quality emoji images from Twitter/X
+const TWEMOJI_BASE = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/';
+
+// Map: emoji unicode -> twemoji filename (codepoint.png)
+const EMOJI_LIST = [
+  // Smileys
+  '😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉',
+  '😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲',
+  '😋','😛','😜','🤪','😝','🤑','🤗','🤭','🫢','🤫',
+  '🤔','🫡','🤐','🤨','😐','😑','😶','🫥','😏','😒',
+  '🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒',
+  '🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳',
+  '🥸','😎','🤓','🧐','😕','🫤','😟','🙁','😮','😯',
+  '😲','😳','🥺','🥹','😦','😧','😨','😰','😥','😢',
+  '😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤',
+  '😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹',
+  // Gestures
+  '👋','🤚','🖐️','✋','🖖','🫱','🫲','🫳','🫴','👌',
+  '🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉',
+  '👆','🖕','👇','☝️','🫵','👍','👎','✊','👊','🤛',
+  '🤜','👏','🙌','🫶','👐','🤲','🤝','🙏','💪','🦾',
+  // Hearts & symbols
+  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔',
+  '❤️‍🔥','💕','💞','💓','💗','💖','💘','💝','💟','💯',
+  '💢','💥','💫','💦','🔥','⭐','🌟','✨','🎉','🎊',
 ];
+
+function emojiToTwemoji(emoji) {
+  const codepoints = [...emoji].map(c => c.codePointAt(0).toString(16)).join('-');
+  // Remove fe0f variant selector for file lookup
+  return codepoints.replace(/-fe0f/g, '');
+}
 
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -413,14 +337,8 @@ function renderMessages() {
 
 function renderTextWithEmoji(text) {
   if (!text) return '';
-  // Replace [emoji_name] with WeChat emoji images
-  return esc(text).replace(/\[([^\]]+)\]/g, (match, name) => {
-    const emoji = WX_EMOJI_LIST.find(e => e.name === name);
-    if (emoji) {
-      return `<img class="inline-emoji" src="${WX_EMOJI_BASE}${emoji.id}" alt="${name}" title="${name}">`;
-    }
-    return match;
-  });
+  // Just escape HTML - emojis are native unicode and render naturally
+  return esc(text);
 }
 
 // ===== Send Text =====
@@ -650,22 +568,24 @@ function setupEmojiPicker() {
   const picker = $('#emojiPicker');
   const grid = $('#emojiGrid');
 
-  // Build grid with WeChat style image emojis
-  grid.innerHTML = WX_EMOJI_LIST.map(e =>
-    `<button class="emoji-item" data-emoji="[${e.name}]" title="${e.name}">
-      <img src="${WX_EMOJI_BASE}${e.id}" alt="${e.name}">
-    </button>`
-  ).join('');
+  // Build grid with Twemoji image emojis
+  grid.innerHTML = EMOJI_LIST.map(emoji => {
+    const code = emojiToTwemoji(emoji);
+    const url = `${TWEMOJI_BASE}${code}.png`;
+    return `<button class="emoji-item" data-emoji="${emoji}" title="${emoji}">
+      <img src="${url}" alt="${emoji}" onerror="this.parentElement.textContent='${emoji}'">
+    </button>`;
+  }).join('');
 
   grid.querySelectorAll('.emoji-item').forEach(btn => {
     btn.addEventListener('click', () => {
       const input = $('#msgInput');
-      const emojiText = btn.dataset.emoji;
+      const emoji = btn.dataset.emoji;
       const start = input.selectionStart;
       const end = input.selectionEnd;
       const val = input.value;
-      input.value = val.slice(0, start) + emojiText + val.slice(end);
-      input.selectionStart = input.selectionEnd = start + emojiText.length;
+      input.value = val.slice(0, start) + emoji + val.slice(end);
+      input.selectionStart = input.selectionEnd = start + emoji.length;
       input.focus();
     });
   });
